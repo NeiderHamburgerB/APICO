@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import compression from 'compression';
+import Database from '../infrastructure/database';
 
 export interface Options {
   port: number;
@@ -27,7 +28,7 @@ export default class Server {
     this.routes = routes;
   }
 
-  start() {
+  async start() {
     // Middlewares
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
@@ -39,6 +40,17 @@ export default class Server {
     // Rutas
     this.app.use(this.routes);
 
+    // Conexión a la base de datos
+    try {
+      const pool = Database.getInstance().getPool();
+      await pool.query('SELECT 1');
+      console.log('Conexión lista');
+    } catch (error) {
+      console.error('Error al conectar a la base de datos:', error);
+      process.exit(1);
+    }
+
+    // Levantar el servidor
     this.serverListener = this.app.listen(this.port, () => {
       console.log(`Servidor corriendo en el puerto ${this.port}`);
     });
