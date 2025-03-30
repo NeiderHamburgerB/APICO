@@ -1,3 +1,4 @@
+import './config/env/env.config';
 import express, { Router } from 'express';
 import Server from './server/server';
 
