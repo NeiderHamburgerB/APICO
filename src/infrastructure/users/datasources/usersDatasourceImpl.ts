@@ -35,14 +35,14 @@ export class UsersDatasourceImpl implements UsersRepository {
     const user = result.rows[0];
     return user
       ? new UsersEntity(
-          user.id,
-          user.name,
-          user.email,
-          user.password,
-          user.roleid,
-          user.createdat || user.createdAt,
-          user.updatedat || user.updatedAt
-        )
+        user.id,
+        user.name,
+        user.email,
+        user.password,
+        user.roleid,
+        user.createdat || user.createdAt,
+        user.updatedat || user.updatedAt
+      )
       : null;
   }
 
@@ -54,14 +54,14 @@ export class UsersDatasourceImpl implements UsersRepository {
     const user = result.rows[0];
     return user
       ? new UsersEntity(
-          user.id,
-          user.name,
-          user.email,
-          user.password,
-          user.roleid,
-          user.createdat || user.createdAt,
-          user.updatedat || user.updatedAt
-        )
+        user.id,
+        user.name,
+        user.email,
+        user.password,
+        user.roleid,
+        user.createdat || user.createdAt,
+        user.updatedat || user.updatedAt
+      )
       : null;
   }
 
@@ -72,4 +72,52 @@ export class UsersDatasourceImpl implements UsersRepository {
     );
     return result.rows.length > 0;
   }
+
+  async isCarrierAvailable(carrierId: number): Promise<boolean> {
+    const result = await pool.query(
+      `SELECT isAvailable FROM users WHERE id = $1 AND roleId = 3`,
+      [carrierId]
+    );
+
+    if (result.rows.length === 0) return false;
+
+    return result.rows[0].isavailable === true;
+  }
+
+  async updateStatus(dto: { id: number; isAvailable: boolean }): Promise<UsersEntity> {
+    const result = await pool.query(
+      `UPDATE users SET isAvailable = $1 WHERE id = $2 RETURNING id, name, email, password, roleId, createdAt, updatedAt`,
+      [dto.isAvailable, dto.id]
+    );
+    const user = result.rows[0];
+    return new UsersEntity(
+      user.id,
+      user.name,
+      user.email,
+      user.password,
+      user.roleid,
+
+      user.createdat || user.createdAt,
+      user.updatedat || user.updatedAt
+    );
+  }
+
+  async areAllOrdersDelivered(carrierId: number): Promise<boolean> {
+    const result = await pool.query(
+      `SELECT o.status
+       FROM orders o
+       JOIN routes r ON o.routeId = r.id
+       WHERE r.assignedCarrierId = $1`,
+      [carrierId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error('No se encontraron órdenes asociadas al transportista');
+    }
+
+    const allDelivered = result.rows.every(row => row.status === 'Entregado');
+
+    return allDelivered;
+  }
+
 }

@@ -10,6 +10,18 @@ export class UsersRepositoryImpl extends UsersRepository {
     super();
   }
 
+  async areAllOrdersDelivered(carrierId: number): Promise<boolean> {
+    return this.datasource.areAllOrdersDelivered(carrierId);
+  }
+
+  async updateStatus(dto: { id: number; isAvailable: boolean }): Promise<UsersEntity> {
+    return this.datasource.updateStatus(dto);
+  }
+
+  async isCarrierAvailable(carrierId: number): Promise<boolean> {
+    return this.datasource.isCarrierAvailable(carrierId);
+  }
+
   async create(dto: CreateUsersDto): Promise<UsersEntity> {
     return this.datasource.create(dto);
   }
