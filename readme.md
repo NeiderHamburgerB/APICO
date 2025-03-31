@@ -88,20 +88,20 @@ Esto levantará PostgreSQL y Redis, y se inicializarán los datos dummy en la ba
 ## Endpoints / Casos de Uso
 ```bash
 Auth
-  POST /auth/login: Inicia sesión en la aplicación.
+  POST  /api/v1/auth/login: Inicia sesión en la aplicación.
 
 Orders
-  POST /orders/create: Crea una nueva orden de envío.
-  PATCH /orders/{orderId}/update-status-delivered: Actualiza el estado de un pedido a "Entregado".
-  GET /orders/{code}/getOrdersStatus: Obtiene el estado de un pedido a partir de su código.
-  GET /orders/query: Consulta pedidos con filtros avanzados.
+  POST  /api/v1/orders/create: Crea una nueva orden de envío.
+  PATCH /api/v1/orders/{orderId}/update-status-delivered: Actualiza el estado de un pedido a "Entregado".
+  GET   /api/v1/orders/{code}/getOrdersStatus: Obtiene el estado de un pedido a partir de su código.
+  GET   /api/v1/orders/query: Consulta pedidos con filtros avanzados.
 
 Routes
-  PATCH /{routeId}/assign: Asigna una orden a una ruta específica.
-  PATCH /{routeId}/assign/carrier: Asigna un carrier (transportista) a una ruta específica.
+  PATCH /api/v1/routes/{routeId}/assign: Asigna una orden a una ruta específica.
+  PATCH /api/v1/routes/{routeId}/assign/carrier: Asigna un carrier (transportista) a una ruta específica.
 
 Users
-  POST /users/register: Registra un nuevo usuario.
+  POST  /api/v1/users/register: Registra un nuevo usuario.
 ```
 
 ## Documentación y Pruebas
