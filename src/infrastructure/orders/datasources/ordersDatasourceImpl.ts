@@ -64,10 +64,10 @@ export class OrdersDatasourceImpl implements OrdersRepository {
     return OrdersEntity.fromObject(order);
   }
 
-  async updateOrderStatus(dto: UpdateOrderStatusDto): Promise<OrdersEntity> {
+  async updateOrderStatus(dto: UpdateOrderStatusDto, orderId: number): Promise<OrdersEntity> {
     const result = await pool.query(
       `UPDATE orders SET status = $1, deliveredAt = $2 WHERE id = $3 RETURNING id, userId, status, packageWeight, packageDimensionWidth, packageDimensionHeight, packageDimensionLength, typeProduct, originCityId, destinationCityId, destinationAddress, estimatedDeliveryTime, deliveredAt, createdAt, updatedAt`,
-      ['Entregado', dto.deliveredAt, dto.id]
+      ['Entregado', dto.deliveredAt, orderId]
     );
     const order = result.rows[0];
     return new OrdersEntity(

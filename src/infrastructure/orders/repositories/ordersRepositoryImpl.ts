@@ -14,8 +14,8 @@ export class OrdersRepositoryImpl extends OrdersRepository {
   async createOrder(dto: CreateOrdersDto): Promise<OrdersEntity> {
     return this.ordersDatasource.createOrder(dto);
   }
-  async updateOrderStatus(dto: UpdateOrderStatusDto): Promise<OrdersEntity> {
-    return this.ordersDatasource.updateOrderStatus(dto);
+  async updateOrderStatus(dto: UpdateOrderStatusDto, orderId: number): Promise<OrdersEntity> {
+    return this.ordersDatasource.updateOrderStatus(dto, orderId);
   }
   async queryOrders(dto: QueryOrdersDto): Promise<OrdersEntity> {
     return this.ordersDatasource.queryOrders(dto);
