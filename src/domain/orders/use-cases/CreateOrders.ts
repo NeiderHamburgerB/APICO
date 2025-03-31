@@ -5,6 +5,7 @@ import { OrdersEntity } from '../entities/orders.entity';
 import { OrdersRepository } from '../repositories/orders.repository';
 import { ApiError } from '../../../shared/errors/apiError';
 import { IAddressValidator } from '../contracts/IAddressValidator';
+import { ICacheService } from '../contracts/ICache';
 
 export interface CreateOrdersUseCase {
   execute(dto: CreateOrdersDto): Promise<OrdersEntity>;
@@ -14,7 +15,8 @@ export interface CreateOrdersUseCase {
 export class CreateOrders implements CreateOrdersUseCase {
   constructor(
     @inject('OrdersRepository') private readonly repository: OrdersRepository,
-    @inject('IAddressValidator') private readonly addressValidator: IAddressValidator
+    @inject('IAddressValidator') private readonly addressValidator: IAddressValidator,
+    @inject('ICacheService') private readonly cacheService: ICacheService
   ) { }
 
   async execute(dto: CreateOrdersDto): Promise<OrdersEntity> {
@@ -45,6 +47,13 @@ export class CreateOrders implements CreateOrdersUseCase {
     }
     dto.code = generateCode(6);
     const order = await this.repository.createOrder(dto);
+    // Guardar el pedido completado en la caché por 5 días
+    const keyOrder = `keyOrder:${order.code}`;
+    await this.cacheService.setEx(keyOrder, 432000, JSON.stringify({
+      deliveredAt: null,
+      order
+    }));
+
     return order;
   }
 }

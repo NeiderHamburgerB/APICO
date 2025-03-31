@@ -6,6 +6,7 @@ jest.mock('../../../../shared/utils/generateCode', () => ({
 
 import { CreateOrders } from '../CreateOrders';
 import { CreateOrdersDto } from '../../dtos/CreateOrdersDto';
+import { generateCode } from '../../../../shared/utils/generateCode';
 
 const originCity = { id: 1, name: "Bogota" };
 const destinationCity = { id: 2, name: "Medellin" };
@@ -48,14 +49,16 @@ const addressValidatorMock = {
 } as any;
 addressValidatorMock.validate.mockResolvedValue(true);
 
-import { generateCode } from '../../../../shared/utils/generateCode';
+const cacheServiceMock = {
+  setEx: jest.fn(),
+} as any;
 
 describe("CreateOrders Use Case", () => {
   let createOrders: CreateOrders;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    createOrders = new CreateOrders(repositoryMock, addressValidatorMock);
+    createOrders = new CreateOrders(repositoryMock, addressValidatorMock, cacheServiceMock);
   });
 
   it("Debe lanzar error si falta el userId", async () => {
@@ -125,5 +128,12 @@ describe("CreateOrders Use Case", () => {
       packageWeight: validDto.packageWeight,
       destinationAddress: validDto.destinationAddress,
     }));
+    // Validar que se llame al cacheService con la key correcta
+    const expectedKey = `keyOrder:TESTCODE`;
+    const expectedValue = JSON.stringify({
+      deliveredAt: null,
+      order: result
+    });
+    expect(cacheServiceMock.setEx).toHaveBeenCalledWith(expectedKey, 432000, expectedValue);
   });
 });
