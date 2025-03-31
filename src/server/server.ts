@@ -1,6 +1,8 @@
 import express, { Router } from 'express';
 import compression from 'compression';
-
+import Database from '../infrastructure/database';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec, swaggerOptions } from '../config/docs/swagger.config';
 export interface Options {
   port: number;
   routes: Router;
@@ -27,7 +29,7 @@ export default class Server {
     this.routes = routes;
   }
 
-  start() {
+  async start() {
     // Middlewares
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
@@ -39,6 +41,20 @@ export default class Server {
     // Rutas
     this.app.use(this.routes);
 
+    // Documentación
+    this.app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
+
+    // Conexión a la base de datos
+    try {
+      const pool = Database.getInstance().getPool();
+      await pool.query('SELECT 1');
+      console.log('Base de datos conectada');
+    } catch (error) {
+      console.error('Error al conectar a la base de datos:', error);
+      process.exit(1);
+    }
+
+    // Levantar el servidor
     this.serverListener = this.app.listen(this.port, () => {
       console.log(`Servidor corriendo en el puerto ${this.port}`);
     });
