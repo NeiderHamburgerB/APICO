@@ -87,6 +87,9 @@ Esto levantará PostgreSQL y Redis, y se inicializarán los datos dummy en la ba
 
 ## Endpoints / Casos de Uso
 ```bash
+Healcheck
+  GET  /healthcheck
+
 Auth
   POST  /api/v1/auth/login: Inicia sesión en la aplicación.
 
