@@ -1,0 +1,24 @@
+version: '3'
+services:
+  postgresDb:
+    image: postgres:13
+    container_name: 'postgresDB-APICO'
+    environment:
+      POSTGRES_USER: 'root'
+      POSTGRES_PASSWORD: 'root'
+      POSTGRES_DB: 'apicoDev'
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    ports:
+      - 5435:5432
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: 'redis-APICO'
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis-data:/data
+    restart: always
