@@ -38,7 +38,7 @@ export class CreateUsers implements CreateUsersUseCase {
     const user = await this.repository.create(newUserDto);
 
     // Generar token JWT
-    const token = this.tokenService.generateToken({ userId: user.id, email: user.email });
+    const token = this.tokenService.generateToken({ userId: user.id, email: user.email, roleId: user.roleId });
     return { user, token };
   }
 }

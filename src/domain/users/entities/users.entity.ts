@@ -5,6 +5,7 @@ export class UsersEntity {
     public email: string,
     public password: string,
     public roleId: number,
+    public isAvailable?: boolean,
     public createdAt?: Date,
     public updatedAt?: Date
   ) {}

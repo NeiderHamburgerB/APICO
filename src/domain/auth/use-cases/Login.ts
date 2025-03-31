@@ -24,7 +24,7 @@ export class Login implements LoginUseCase {
     if (!isPasswordValid) {
       throw new Error('User not found or invalid password');
     }
-    const token = this.tokenService.generateToken({ userId: user.id, email: user.email });
+    const token = this.tokenService.generateToken({ userId: user.id, email: user.email, roleId: user.roleId });
     return { token };
   }
 }

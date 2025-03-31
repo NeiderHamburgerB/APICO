@@ -48,12 +48,12 @@ describe('Login Use Case', () => {
 
     when(repositoryMock.findByEmail(dto.email)).thenResolve(user);
     when(encryptionServiceMock.compare(dto.password, user.password)).thenResolve(true);
-    when(tokenServiceMock.generateToken(deepEqual({ userId: user.id, email: user.email }))).thenReturn('validToken');
+    when(tokenServiceMock.generateToken(deepEqual({ userId: user.id, email: user.email, roleId: user.roleId }))).thenReturn('validToken');
 
     const result = await useCase.execute(dto);
 
     expect(result.token).toBe('validToken');
-    verify(tokenServiceMock.generateToken(deepEqual({ userId: user.id, email: user.email }))).once();
+    verify(tokenServiceMock.generateToken(deepEqual({ userId: user.id, email: user.email, roleId: user.roleId }))).once();
   });
 
 
