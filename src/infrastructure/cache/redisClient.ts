@@ -12,7 +12,7 @@ export class RedisCacheService implements ICacheService {
     });
     this.client.connect().catch(console.error);
 
-    this.client.on('connect', () => console.log('Redis connected'));
+    this.client.on('connect', () => console.log('Redis'));
     this.client.on('error', (err) => console.error('Redis error:', err));
   }
 
