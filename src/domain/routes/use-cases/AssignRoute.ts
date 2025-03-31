@@ -52,8 +52,28 @@ export class AssignRoute implements AssignRouteUseCase {
     const updatedRoute = await this.routeRepository.assignOrderToRoute(dto, routeId);
    
     // Almacenar en caché por 30 minutos (1800 segundos)
-    const cacheKey = `route:${routeId}:status`;
+    const cacheKey = `order:${order.code}:status`;
+
+    order.status = 'En transito';
     await this.cacheService.setEx(cacheKey, 1800, order.status);
+
+    // Guardar el pedido en la caché por 5 días
+    const cacheKeyOrders = 'orders';
+    const cachedOrdersData = await this.cacheService.get(cacheKeyOrders);
+    let ordersList = [];
+    if (cachedOrdersData) {
+      try {
+        ordersList = JSON.parse(cachedOrdersData);
+      } catch (error) {
+        ordersList = [];
+      }
+    }
+    ordersList.push({
+      deliveredAt: null,
+      order,
+      route: null
+    });
+    await this.cacheService.setEx(cacheKeyOrders, 432000, JSON.stringify(ordersList));
 
     return updatedRoute;
   }

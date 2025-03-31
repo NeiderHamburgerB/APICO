@@ -21,6 +21,7 @@ describe('AssignRoute UseCase', () => {
 
     mockCacheService = {
       setEx: jest.fn(),
+      get: jest.fn(),
     };
 
     assignRoute = new AssignRoute(
@@ -110,23 +111,35 @@ describe('AssignRoute UseCase', () => {
       .toEqual(new ApiError(400, 'The vehicle cannot carry the order due to weight or volume constraints'));
   });
 
-  it('debe asignar la orden a la ruta correctamente', async () => {
+  it('debe asignar la orden a la ruta correctamente y guardar en caché', async () => {
     const futureDate = new Date(Date.now() + 10000);
     const route = { id: 123, originCityId: 1, destinationCityId: 2, startDateTime: futureDate };
-    const order = { id: 1, routeId: null, originCityId: 1, destinationCityId: 2, status: 'pending' };
+    const order = { id: 1, routeId: null, originCityId: 1, destinationCityId: 2, code: 'TESTCODE', status: 'En espera' };
     const updatedRoute = { id: 123, assignedOrders: [order] };
 
     mockRouteRepository.findById.mockResolvedValue(route);
     mockOrdersRepository.findOrderById.mockResolvedValue(order);
     mockRouteRepository.validateVehicleCapacity.mockResolvedValue(true);
     mockRouteRepository.assignOrderToRoute.mockResolvedValue(updatedRoute);
-    mockCacheService.setEx.mockResolvedValue(undefined);
+    mockCacheService.get.mockResolvedValue(null);
 
     const dto = { orderId: 1 };
 
     const result = await assignRoute.execute(dto, 123);
 
     expect(result).toEqual(updatedRoute);
-    expect(mockCacheService.setEx).toHaveBeenCalledWith(`route:123:status`, 1800, order.status);
+    expect(mockCacheService.setEx).toHaveBeenCalledWith('order:TESTCODE:status', 1800, 'En transito');
+
+    expect(mockCacheService.setEx).toHaveBeenCalledWith(
+      'orders',
+      432000,
+      JSON.stringify([
+        {
+          deliveredAt: null,
+          order: { ...order, status: 'En transito' },
+          route: null
+        }
+      ])
+    );
   });
 });
