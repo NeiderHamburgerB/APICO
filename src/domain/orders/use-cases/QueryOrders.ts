@@ -14,39 +14,50 @@ export class QueryOrders implements QueryOrdersUseCase {
   ) {}
 
   async execute(dto: QueryOrdersDto): Promise<OrdersEntity[]> {
-    const cacheKey = `keyOrder:${dto.code}`;
+    const cacheKey = 'orders';  
     const cachedData = await this.cacheService.get(cacheKey);
 
     if (!cachedData) {
       return [];
     }
 
-    let ordersList: OrdersEntity[] = [];
+    let ordersList: any[] = [];
     try {
       ordersList = JSON.parse(cachedData);
     } catch (error) {
       return [];
     }
 
-    // Filtro por fechas
-    if (dto.startDate !== undefined) {
-      const startDate = dto.startDate;
+    // Filtro por código  
+    if (dto.code) {
+      ordersList = ordersList.filter(orderWrapper => orderWrapper.order.code === dto.code);
+    }
+
+    // Filtro por fechas  
+    if (dto.startDate && dto.startDate instanceof Date && !isNaN(dto.startDate.getTime())) {
       ordersList = ordersList.filter(
-        order => order.deliveredAt && new Date(order.deliveredAt) >= startDate
+        orderWrapper => orderWrapper.deliveredAt && new Date(orderWrapper.deliveredAt) >= dto.startDate!
       );
     }
-    if (dto.endDate !== undefined) {
-      const endDate = dto.endDate!;
+    
+    if (dto.endDate && dto.endDate instanceof Date && !isNaN(dto.endDate.getTime())) {
       ordersList = ordersList.filter(
-        order => order.deliveredAt && new Date(order.deliveredAt) <= endDate
+        orderWrapper => orderWrapper.deliveredAt && new Date(orderWrapper.deliveredAt) <= dto.endDate!
+      );
+    }
+
+    // Filtro por assignedCarrierId
+    if (dto.assignedCarrierId !== undefined) {
+      ordersList = ordersList.filter(
+        orderWrapper => orderWrapper.route?.assignedCarrierId === dto.assignedCarrierId
       );
     }
 
     // Filtro por estado
     if (dto.status) {
-      ordersList = ordersList.filter(order => order.status === dto.status);
+      ordersList = ordersList.filter(orderWrapper => orderWrapper.order.status === dto.status);
     }
 
-    return ordersList;
+    return ordersList.map(wrapper => wrapper.order);
   }
 }

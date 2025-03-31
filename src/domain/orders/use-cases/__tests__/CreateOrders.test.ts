@@ -50,6 +50,7 @@ const addressValidatorMock = {
 addressValidatorMock.validate.mockResolvedValue(true);
 
 const cacheServiceMock = {
+  get: jest.fn(),
   setEx: jest.fn(),
 } as any;
 
@@ -101,7 +102,7 @@ describe("CreateOrders Use Case", () => {
     await expect(createOrders.execute(validDto)).rejects.toThrow("the destination address is not valid for the destination city");
   });
 
-  it("Debe crear la orden exitosamente", async () => {
+  it("Debe crear la orden exitosamente y almacenarla en la caché general", async () => {
     repositoryMock.findExistingCity.mockReset();
     repositoryMock.findExistingCity
       .mockResolvedValueOnce(originCity)
@@ -118,7 +119,12 @@ describe("CreateOrders Use Case", () => {
       });
     });
 
+    const existingOrders = [
+      { deliveredAt: null, order: { id: 99, code: "TESTCODE99" }, route: null }
+    ];
+    cacheServiceMock.get.mockResolvedValueOnce(JSON.stringify(existingOrders));
     const result = await createOrders.execute(validDto);
+
     expect(result.id).toBe(100);
     expect(result.code).toBe("TESTCODE");
     expect(generateCode).toHaveBeenCalledWith(6);
@@ -128,12 +134,16 @@ describe("CreateOrders Use Case", () => {
       packageWeight: validDto.packageWeight,
       destinationAddress: validDto.destinationAddress,
     }));
-    // Validar que se llame al cacheService con la key correcta
-    const expectedKey = `keyOrder:TESTCODE`;
-    const expectedValue = JSON.stringify({
-      deliveredAt: null,
-      order: result
-    });
-    expect(cacheServiceMock.setEx).toHaveBeenCalledWith(expectedKey, 432000, expectedValue);
+
+    const expectedKey = `orders`;
+    const expectedOrders = [
+      ...existingOrders,
+      {
+        deliveredAt: null,
+        order: result,
+        route: null
+      }
+    ];
+    expect(cacheServiceMock.setEx).toHaveBeenCalledWith(expectedKey, 432000, JSON.stringify(expectedOrders));
   });
 });

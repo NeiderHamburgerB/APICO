@@ -47,12 +47,24 @@ export class CreateOrders implements CreateOrdersUseCase {
     }
     dto.code = generateCode(6);
     const order = await this.repository.createOrder(dto);
-    // Guardar el pedido completado en la caché por 5 días
-    const keyOrder = `keyOrder:${order.code}`;
-    await this.cacheService.setEx(keyOrder, 432000, JSON.stringify({
+    // Guardar el pedido en la caché por 5 días
+    const cacheKey = 'orders';
+    const cachedOrdersData = await this.cacheService.get(cacheKey);
+    let ordersList = [];
+
+    if (cachedOrdersData) {
+      try {
+        ordersList = JSON.parse(cachedOrdersData);
+      } catch (error) {
+        ordersList = [];
+      }
+    }
+    ordersList.push({
       deliveredAt: null,
-      order
-    }));
+      order,
+      route: null
+    });
+    await this.cacheService.setEx(cacheKey, 432000, JSON.stringify(ordersList));
 
     return order;
   }
